@@ -3,6 +3,8 @@ package in.ashwanthkumar.gocd.slack.jsonapi;
 import com.google.gson.JsonElement;
 import com.thoughtworks.go.plugin.api.logging.Logger;
 import in.ashwanthkumar.gocd.slack.ruleset.Rules;
+import in.ashwanthkumar.gocd.slack.util.Options;
+import in.ashwanthkumar.utils.lang.option.Option;
 
 import javax.xml.bind.DatatypeConverter;
 import java.io.IOException;
@@ -36,7 +38,7 @@ public class Server {
         this.httpConnectionUtil = httpConnectionUtil;
     }
 
-    JsonElement getUrl(URL url)
+    JsonElement getUrl(URL url, Option<String> acceptContent)
             throws IOException {
         URL normalizedUrl;
         try {
@@ -56,6 +58,10 @@ public class Server {
             request.setRequestProperty("Authorization", basicAuth);
         }
 
+        if (acceptContent.isDefined()) {
+            request.setRequestProperty("Accept", acceptContent.get());
+        }
+
         request.connect();
 
         return httpConnectionUtil.responseToJson(request.getContent());
@@ -68,7 +74,7 @@ public class Server {
             throws MalformedURLException, IOException {
         URL url = new URL(String.format("%s/go/api/pipelines/%s/history",
                 mRules.getGoAPIServerHost(), pipelineName));
-        JsonElement json = getUrl(url);
+        JsonElement json = getUrl(url, Options.<String>empty());
         return httpConnectionUtil.convertResponse(json, History.class);
     }
 
@@ -79,7 +85,18 @@ public class Server {
             throws MalformedURLException, IOException {
         URL url = new URL(String.format("%s/go/api/pipelines/%s/instance/%d",
                 mRules.getGoAPIServerHost(), pipelineName, pipelineCounter));
-        JsonElement json = getUrl(url);
+        JsonElement json = getUrl(url, Options.<String>empty());
+
         return httpConnectionUtil.convertResponse(json, Pipeline.class);
     }
+
+    public JsonElement fetchPipelineConfig(String pipelineName) throws IOException {
+        URL url = new URL(String.format("%s/go/api/admin/pipelines/%s",
+                mRules.getGoServerHost(),
+                pipelineName)
+        );
+
+        return getUrl(url, Option.option("application/vnd.go.cd.v1+json"));
+    }
+
 }
