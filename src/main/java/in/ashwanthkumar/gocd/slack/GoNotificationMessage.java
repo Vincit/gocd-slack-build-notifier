@@ -38,6 +38,11 @@ public class GoNotificationMessage {
         }
     }
 
+    static class JobInfo {
+        @SerializedName("name")
+        String name;
+    }
+
     static class StageInfo {
         @SerializedName("name")
         String name;
@@ -56,6 +61,9 @@ public class GoNotificationMessage {
 
         @SerializedName("last-transition-time")
         String lastTransitionTime;
+
+        @SerializedName("jobs")
+        List<JobInfo> jobs;
     }
 
     static class PipelineInfo {

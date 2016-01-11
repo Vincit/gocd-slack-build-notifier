@@ -3,6 +3,7 @@ package in.ashwanthkumar.gocd.slack.ruleset;
 import com.thoughtworks.go.plugin.api.logging.Logger;
 import com.typesafe.config.Config;
 import in.ashwanthkumar.gocd.slack.PipelineListener;
+import in.ashwanthkumar.gocd.slack.SlackPipelineListener;
 import in.ashwanthkumar.utils.collections.Lists;
 import in.ashwanthkumar.utils.func.Function;
 import in.ashwanthkumar.utils.func.Predicate;
@@ -67,7 +68,7 @@ public class Rules {
         return slackDisplayName;
     }
 
-    private Rules setSlackDisplayName(String displayName) {
+    public Rules setSlackDisplayName(String displayName) {
         this.slackDisplayName = displayName;
         return this;
     }
@@ -76,7 +77,7 @@ public class Rules {
         return slackUserIconURL;
     }
 
-    private Rules setSlackUserIcon(String iconURL) {
+    public Rules setSlackUserIcon(String iconURL) {
         this.slackUserIconURL = iconURL;
         return this;
     }
@@ -150,6 +151,10 @@ public class Rules {
 
     public PipelineListener getPipelineListener() {
         return pipelineListener;
+    }
+
+    public PipelineListener resolvePipelineListener() {
+        return new SlackPipelineListener(this);
     }
 
     public Option<PipelineRule> find(final String pipeline, final String stage, final String pipelineStatus) {
