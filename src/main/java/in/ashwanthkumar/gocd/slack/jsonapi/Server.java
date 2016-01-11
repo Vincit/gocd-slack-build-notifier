@@ -2,6 +2,7 @@ package in.ashwanthkumar.gocd.slack.jsonapi;
 
 import com.google.gson.JsonElement;
 import com.thoughtworks.go.plugin.api.logging.Logger;
+import in.ashwanthkumar.gocd.slack.jsonapi.config.pipeline.PipelineConfig;
 import in.ashwanthkumar.gocd.slack.ruleset.Rules;
 import in.ashwanthkumar.gocd.slack.util.Options;
 import in.ashwanthkumar.utils.lang.option.Option;
@@ -85,13 +86,14 @@ public class Server {
         return httpConnectionUtil.convertResponse(json, Pipeline.class);
     }
 
-    public JsonElement fetchPipelineConfig(String pipelineName) throws IOException {
+    public PipelineConfig fetchPipelineConfig(String pipelineName) throws IOException {
         URL url = new URL(String.format("%s/go/api/admin/pipelines/%s",
                 mRules.getGoServerHost(),
                 pipelineName)
         );
 
-        return getUrl(url, Option.option("application/vnd.go.cd.v1+json"));
+        JsonElement json = getUrl(url, Option.option("application/vnd.go.cd.v1+json"));
+        return httpConnectionUtil.convertResponse(json, PipelineConfig.class);
     }
 
 }
