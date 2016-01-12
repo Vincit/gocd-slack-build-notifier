@@ -7,17 +7,21 @@ import com.thoughtworks.go.plugin.api.GoPluginIdentifier;
 import com.thoughtworks.go.plugin.api.annotation.Extension;
 import com.thoughtworks.go.plugin.api.logging.Logger;
 import com.thoughtworks.go.plugin.api.request.GoPluginApiRequest;
+import com.thoughtworks.go.plugin.api.response.GoApiResponse;
 import com.thoughtworks.go.plugin.api.response.GoPluginApiResponse;
 import in.ashwanthkumar.gocd.slack.jsonapi.Server;
 import in.ashwanthkumar.gocd.slack.ruleset.RuleResolver;
 import in.ashwanthkumar.gocd.slack.ruleset.Rules;
 import in.ashwanthkumar.gocd.slack.ruleset.RulesReader;
+import in.ashwanthkumar.gocd.slack.util.JSONUtils;
 import org.apache.commons.io.IOUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
+import static in.ashwanthkumar.gocd.slack.util.GoFieldUtils.createField;
+import static in.ashwanthkumar.gocd.slack.util.GoRequestFactory.createGoApiRequest;
 import static in.ashwanthkumar.utils.lang.StringUtils.isEmpty;
 import static java.util.Arrays.asList;
 
@@ -37,6 +41,7 @@ public class GoNotificationPlugin implements GoPlugin {
     public static final int SUCCESS_RESPONSE_CODE = 200;
     public static final int INTERNAL_ERROR_RESPONSE_CODE = 500;
 
+    public static final String GET_PLUGIN_SETTINGS = "go.processor.plugin-settings.get";
     public static final String GO_NOTIFY_CONFIGURATION = "go_notify.conf";
 
     private Rules fileRules;
@@ -52,7 +57,7 @@ public class GoNotificationPlugin implements GoPlugin {
     }
 
     public void initializeGoApplicationAccessor(GoApplicationAccessor goApplicationAccessor) {
-        // ignore
+        this.goApplicationAccessor = goApplicationAccessor;
     }
 
     public GoPluginApiResponse handle(GoPluginApiRequest goPluginApiRequest) {
@@ -68,7 +73,7 @@ public class GoNotificationPlugin implements GoPlugin {
         } else if (requestName.equals(REQUEST_GET_CONFIGURATION)) {
             return handleRequestGetConfiguration();
         }
-        return null;
+        return renderJSON(404, null);
     }
 
     private GoPluginApiResponse handleValidateConfig(String requestBody) {
@@ -99,11 +104,13 @@ public class GoNotificationPlugin implements GoPlugin {
 
     private GoPluginApiResponse handleRequestGetConfiguration() {
         Map<String, Object> response = new HashMap<String, Object>();
-        Map<String, Object> serverUrlParams = new HashMap<String, Object>();
-        serverUrlParams.put("display-name", "External GoCD Server URL");
-
-        response.put("server-url-external", serverUrlParams);
-
+        response.put("server-url-external", createField("External GoCD Server URL", null, false, true, false, "0"));
+        response.put("webhook-url", createField("Webhook URL", null, true, false, false, "1"));
+        response.put("display-name", createField("Display Name", null, false, true, false, "2"));
+        response.put("icon-url", createField("Icon URL", null, false, false, false, "3"));
+        response.put("default-channel", createField("Default Channel", null, false, false, false, "5"));
+        response.put("admin-username", createField("Admin Username", null, false, false, false, "6"));
+        response.put("admin-password", createField("Admin Password", null, false, false, true, "7"));
         return renderJSON(SUCCESS_RESPONSE_CODE, response);
     }
 
@@ -140,6 +147,28 @@ public class GoNotificationPlugin implements GoPlugin {
             response.put("messages", messages);
         }
         return renderJSON(responseCode, response);
+    }
+
+    private Rules getPluginConfiguration() {
+        Map<String, Object> responseBodyMap = getRulesFromGo();
+        return new Rules()
+                .setEnabled(false)
+                .setGoLogin((String)responseBodyMap.get("adminusername"))
+                .setGoPassword((String)responseBodyMap.get("adminpassword"))
+                .setWebHookUrl((String)responseBodyMap.get("webhookurl"))
+                .setSlackDisplayName((String)responseBodyMap.get("displayname"))
+                .setSlackUserIcon((String)responseBodyMap.get("iconurl"))
+                .setGoServerHost((String)responseBodyMap.get("serverhost"));
+    }
+
+    private Map<String, Object> getRulesFromGo() {
+        Map<String, Object> requestMap = new HashMap<String, Object>();
+        requestMap.put("plugin-id", "slack.notifier");
+        GoApiResponse response = goApplicationAccessor.submit(createGoApiRequest(GET_PLUGIN_SETTINGS, JSONUtils.toJSON(requestMap)));
+
+        return response.responseBody() == null ?
+                new HashMap<String, Object>() :
+                (Map<String, Object>) JSONUtils.fromJSON(response.responseBody());
     }
 
     private GoNotificationMessage parseNotificationMessage(GoPluginApiRequest goPluginApiRequest) {

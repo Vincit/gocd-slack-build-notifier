@@ -162,10 +162,6 @@ public class Rules {
         }
 
         String serverHost = config.getString("server-host");
-        String apiServerHost = null;
-        if (config.hasPath("api-server-host")) {
-            apiServerHost = config.getString("api-server-host");
-        }
         String login = null;
         if (config.hasPath("login")) {
             login = config.getString("login");
@@ -191,14 +187,11 @@ public class Rules {
                 .setSlackUserIcon(iconURL)
                 .setPipelineRules(pipelineRules)
                 .setGoServerHost(serverHost)
-                .setGoAPIServerHost(apiServerHost)
                 .setGoLogin(login)
                 .setGoPassword(password);
         try {
             rules.pipelineListener = Class.forName(config.getString("listener")).asSubclass(PipelineListener.class).getConstructor(Rules.class).newInstance(rules);
-        } catch (Exception e) {
-            LOGGER.error("Exception while initializing pipeline listener", e);
-            throw new RuntimeException(e);
+        } catch (Exception ignore) {
         }
 
         return rules;

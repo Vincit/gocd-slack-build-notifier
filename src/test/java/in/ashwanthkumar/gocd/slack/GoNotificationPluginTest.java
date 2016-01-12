@@ -20,10 +20,7 @@ public class GoNotificationPluginTest {
     public static final String USER_HOME = "user.home";
 
     public static final String NOTIFICATION_INTEREST_RESPONSE = "{\"notifications\":[\"stage-status\"]}";
-    public static final String GET_CONFIGURATION_RESPONSE = "{\"server-url-external\":{" +
-            "\"display-name\":\"External GoCD Server URL\"" +
-            "}" +
-            "}";
+    public static final String GET_CONFIGURATION_RESPONSE = "{\"admin-password\":{\"display-order\":\"7\",\"display-name\":\"Admin Password\",\"part-of-identity\":false,\"secure\":true,\"required\":false},\"webhook-url\":{\"display-order\":\"1\",\"display-name\":\"Webhook URL\",\"part-of-identity\":true,\"secure\":false,\"required\":false},\"display-name\":{\"display-order\":\"2\",\"display-name\":\"Display Name\",\"part-of-identity\":false,\"secure\":false,\"required\":true},\"server-url-external\":{\"display-order\":\"0\",\"display-name\":\"External GoCD Server URL\",\"part-of-identity\":false,\"secure\":false,\"required\":true},\"icon-url\":{\"display-order\":\"3\",\"display-name\":\"Icon URL\",\"part-of-identity\":false,\"secure\":false,\"required\":false},\"default-channel\":{\"display-order\":\"5\",\"display-name\":\"Default Channel\",\"part-of-identity\":false,\"secure\":false,\"required\":false},\"admin-username\":{\"display-order\":\"6\",\"display-name\":\"Admin Username\",\"part-of-identity\":false,\"secure\":false,\"required\":false}}";
     private static final String GET_CONFIG_VALIDATION_RESPONSE = "[]";
 
     @Test

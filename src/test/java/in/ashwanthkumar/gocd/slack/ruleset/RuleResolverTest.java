@@ -184,6 +184,34 @@ public class RuleResolverTest {
     }
 
     @Test
+    public void shouldUseFileBasedConfigsByDefault() throws Exception {
+        Server server = mock(Server.class);
+        RuleResolver resolver = new RuleResolver(server);
+
+        when(server.fetchPipelineConfig("pipeline"))
+                .thenReturn(new PipelineConfig()
+                        .setName("pipeline"));
+
+        Rules defaultRules = new Rules()
+                .setGoServerHost("http://localhost")
+                .setPipelineRules(Arrays.asList(
+                        new PipelineRule()
+                        .setChannel("file-channel")
+                        .setNameRegex(".*")
+                        .setStageRegex(".*")
+                        .setStatus(new HashSet<PipelineStatus>(Arrays.asList(
+                                PipelineStatus.FAILED, PipelineStatus.PASSED
+                        )))
+                ));
+        assertThat(resolver.resolvePipelineRule(defaultRules, "pipeline", "defaultStage").
+                find("pipeline", "defaultStage", "passed")
+                .isDefined(), is(true));
+        assertThat(resolver.resolvePipelineRule(defaultRules, "pipeline", "defaultStage")
+                .find("pipeline", "defaultStage", "failed")
+                .isDefined(), is(true));
+    }
+
+    @Test
     public void shouldOverrideFileBasedRules() throws Exception {
         Server server = mock(Server.class);
         RuleResolver resolver = new RuleResolver(server);
@@ -202,12 +230,12 @@ public class RuleResolverTest {
                 .setGoServerHost("http://localhost")
                 .setPipelineRules(Arrays.asList(
                         new PipelineRule()
-                        .setChannel("file-channel")
-                        .setNameRegex(".*")
-                        .setStageRegex(".*")
-                        .setStatus(new HashSet<PipelineStatus>(Arrays.asList(
-                                PipelineStatus.FAILED
-                        )))
+                                .setChannel("file-channel")
+                                .setNameRegex(".*")
+                                .setStageRegex(".*")
+                                .setStatus(new HashSet<PipelineStatus>(Arrays.asList(
+                                        PipelineStatus.FAILED
+                                )))
                 ));
         assertThat(resolver.resolvePipelineRule(defaultRules, "pipeline", "defaultStage").
                 find("pipeline", "defaultStage", "passed")
