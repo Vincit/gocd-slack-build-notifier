@@ -1,7 +1,8 @@
 package in.ashwanthkumar.gocd.slack.ruleset;
 
-import com.google.gson.JsonParser;
 import in.ashwanthkumar.gocd.slack.jsonapi.Server;
+import in.ashwanthkumar.gocd.slack.jsonapi.config.pipeline.PipelineConfig;
+import in.ashwanthkumar.gocd.slack.jsonapi.config.pipeline.StageConfig;
 import org.junit.Test;
 
 import static org.hamcrest.core.Is.is;
@@ -18,7 +19,13 @@ public class RuleResolverTest {
         RuleResolver resolver = new RuleResolver(server);
 
         when(server.fetchPipelineConfig("pipeline"))
-                .thenReturn(new JsonParser().parse(ALL_PARAMS));
+                .thenReturn(new PipelineConfig()
+                        .setName("pipeline")
+                        .addEnvVar("GO_SLACK_CHANNEL", "test-channel")
+                        .addEnvVar("GO_SLACK_STATUSES", "failed|broken|fixed|building")
+                        .addEnvVar("GO_SLACK_STAGES", "stage.*")
+                        .addStage(new StageConfig()
+                                .setName("stage")));
 
         Rules defaultRules = new Rules()
                 .setGoServerHost("http://localhost");
@@ -43,7 +50,13 @@ public class RuleResolverTest {
         RuleResolver resolver = new RuleResolver(server);
 
         when(server.fetchPipelineConfig("pipeline"))
-                .thenReturn(new JsonParser().parse(DISABLED_FOR_STAGE));
+                .thenReturn(new PipelineConfig()
+                        .setName("pipeline")
+                        .addEnvVar("GO_SLACK_CHANNEL", "test-channel")
+                        .addEnvVar("GO_SLACK_STATUSES", "failed|broken|fixed|building")
+                        .addEnvVar("GO_SLACK_STAGES", "other-stage")
+                        .addStage(new StageConfig()
+                                .setName("stage")));
 
         Rules defaultRules = new Rules()
                 .setGoServerHost("http://localhost");
@@ -61,7 +74,10 @@ public class RuleResolverTest {
         RuleResolver resolver = new RuleResolver(server);
 
         when(server.fetchPipelineConfig("pipeline"))
-                .thenReturn(new JsonParser().parse(DISABLED_FOR_PIPELINE));
+                .thenReturn(new PipelineConfig()
+                        .setName("pipeline")
+                        .addStage(new StageConfig()
+                                .setName("stage")));
 
         Rules defaultRules = new Rules()
                 .setGoServerHost("http://localhost");
@@ -79,7 +95,13 @@ public class RuleResolverTest {
         RuleResolver resolver = new RuleResolver(server);
 
         when(server.fetchPipelineConfig("pipeline"))
-                .thenReturn(new JsonParser().parse(NO_STATUSES));
+                .thenReturn(new PipelineConfig()
+                        .setName("pipeline")
+                        .addEnvVar("GO_SLACK_CHANNEL", "test-channel")
+                        .addEnvVar("GO_SLACK_STATUSES", "")
+                        .addEnvVar("GO_SLACK_STAGES", "stage.*")
+                        .addStage(new StageConfig()
+                                .setName("stage")));
 
         Rules defaultRules = new Rules()
                 .setGoServerHost("http://localhost");
