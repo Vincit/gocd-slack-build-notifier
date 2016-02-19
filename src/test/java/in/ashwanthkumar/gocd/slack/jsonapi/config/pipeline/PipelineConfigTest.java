@@ -25,6 +25,20 @@ public class PipelineConfigTest {
         assertThat(pipelineConfig.getStageEnvVar("stage", "var4").get(), is("value_s4"));
     }
 
+    @Test
+    public void shouldReturnEnvVarFromStageWhenNoPipelineLevelConfigs() {
+        PipelineConfig pipelineConfig = getPipelineConfigWithOnlyStageConfigs();
+
+        assertThat(pipelineConfig.getStageEnvVar("stage", "var4").get(), is("value_s4"));
+    }
+
+    @Test
+    public void shouldOverridePipelineVarWithStageVar() {
+        PipelineConfig pipelineConfig = getPipelineConfig();
+
+        assertThat(pipelineConfig.getStageEnvVar("stage", "var3").get(), is("value_s3_other"));
+    }
+
 
     @Test
     public void shouldWorkEvenWhenEnvVarsNull() {
@@ -44,15 +58,33 @@ public class PipelineConfigTest {
         Map<String, String> pipelineEnvVars = new HashMap<String, String>();
         pipelineEnvVars.put("var1", "value_p1");
         pipelineEnvVars.put("var5", "value_p5");
+        pipelineEnvVars.put("var3", "value_p3");
 
         Map<String, String> stageEnvVars = new HashMap<String, String>();
         stageEnvVars.put("var1", "value_s1");
         stageEnvVars.put("var2", "value_s2");
+        stageEnvVars.put("var3", "value_s3_other");
         stageEnvVars.put("var4", "value_s4");
 
         return new PipelineConfig()
                 .setName("pipeline")
                 .setEnvironmentVariables(pipelineEnvVars)
+                .setStages(Arrays.asList(
+                        new StageConfig()
+                                .setName("stage")
+                                .setEnvironmentVariables(stageEnvVars)
+                ));
+    }
+
+    private PipelineConfig getPipelineConfigWithOnlyStageConfigs() {
+        Map<String, String> stageEnvVars = new HashMap<String, String>();
+        stageEnvVars.put("var1", "value_s1");
+        stageEnvVars.put("var2", "value_s2");
+        stageEnvVars.put("var3", "value_s3_other");
+        stageEnvVars.put("var4", "value_s4");
+
+        return new PipelineConfig()
+                .setName("pipeline")
                 .setStages(Arrays.asList(
                         new StageConfig()
                                 .setName("stage")
