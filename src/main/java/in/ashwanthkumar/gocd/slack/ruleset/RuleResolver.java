@@ -12,6 +12,9 @@ import java.util.Collections;
 
 public class RuleResolver {
 
+    public static final String GO_SLACK_CHANNEL = "GO_SLACK_CHANNEL";
+    public static final String GO_SLACK_STATUSES = "GO_SLACK_STATUSES";
+    public static final String GO_SLACK_STAGES = "GO_SLACK_STAGES";
     private static Logger LOGGER = Logger.getLoggerFor(RuleResolver.class);
 
     private Server server;
@@ -25,9 +28,9 @@ public class RuleResolver {
     {
         PipelineConfig pipelineConfig = server.fetchPipelineConfig(currentPipeline);
 
-        Option<String> slackChannel = pipelineConfig.getStageEnvVar(currentStage, "GO_SLACK_CHANNEL");
-        Option<String> buildStatuses = pipelineConfig.getStageEnvVar(currentStage, "GO_SLACK_STATUSES");
-        Option<String> stageRegex = pipelineConfig.getStageEnvVar(currentStage, "GO_SLACK_STAGES");
+        Option<String> slackChannel = pipelineConfig.getStageEnvVar(currentStage, GO_SLACK_CHANNEL);
+        Option<String> buildStatuses = pipelineConfig.getStageEnvVar(currentStage, GO_SLACK_STATUSES);
+        Option<String> stageRegex = pipelineConfig.getStageEnvVar(currentStage, GO_SLACK_STAGES);
 
 
         PipelineRule pipelineRule = new PipelineRule()

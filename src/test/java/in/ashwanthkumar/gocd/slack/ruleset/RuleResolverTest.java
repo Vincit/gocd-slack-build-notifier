@@ -13,6 +13,10 @@ import static org.mockito.Mockito.when;
 
 public class RuleResolverTest {
 
+    public static final String GO_SLACK_CHANNEL = "GO_SLACK_CHANNEL";
+    public static final String GO_SLACK_STATUSES = "GO_SLACK_STATUSES";
+    public static final String GO_SLACK_STAGES = "GO_SLACK_STAGES";
+
     @Test
     public void shouldFetchRules() throws Exception {
         Server server = mock(Server.class);
@@ -21,9 +25,9 @@ public class RuleResolverTest {
         when(server.fetchPipelineConfig("pipeline"))
                 .thenReturn(new PipelineConfig()
                         .setName("pipeline")
-                        .addEnvVar("GO_SLACK_CHANNEL", "test-channel")
-                        .addEnvVar("GO_SLACK_STATUSES", "failed|broken|fixed|building")
-                        .addEnvVar("GO_SLACK_STAGES", "stage.*")
+                        .addEnvVar(GO_SLACK_CHANNEL, "test-channel")
+                        .addEnvVar(GO_SLACK_STATUSES, "failed|broken|fixed|building")
+                        .addEnvVar(GO_SLACK_STAGES, "stage.*")
                         .addStage(new StageConfig()
                                 .setName("stage")));
 
@@ -54,9 +58,9 @@ public class RuleResolverTest {
                         .setName("pipeline")
                         .addStage(new StageConfig()
                                 .setName("stage")
-                                .addEnvVar("GO_SLACK_CHANNEL", "test-channel")
-                                .addEnvVar("GO_SLACK_STATUSES", "fixed|broken")
-                                .addEnvVar("GO_SLACK_STAGES", "stage.*"))
+                                .addEnvVar(GO_SLACK_CHANNEL, "test-channel")
+                                .addEnvVar(GO_SLACK_STATUSES, "fixed|broken")
+                                .addEnvVar(GO_SLACK_STAGES, "stage.*"))
                 );
 
         Rules defaultRules = new Rules()
@@ -80,16 +84,16 @@ public class RuleResolverTest {
         when(server.fetchPipelineConfig("pipeline"))
                 .thenReturn(new PipelineConfig()
                         .setName("pipeline")
-                        .addEnvVar("GO_SLACK_CHANNEL", "test-channel")
-                        .addEnvVar("GO_SLACK_STATUSES", "failed|broken|fixed|building")
-                        .addEnvVar("GO_SLACK_STAGES", "stage.*")
+                        .addEnvVar(GO_SLACK_CHANNEL, "test-channel")
+                        .addEnvVar(GO_SLACK_STATUSES, "failed|broken|fixed|building")
+                        .addEnvVar(GO_SLACK_STAGES, "stage.*")
                         .addStage(new StageConfig()
                                 .setName("stage")
                         ).addStage(new StageConfig()
                                 .setName("other-stage")
-                                .addEnvVar("GO_SLACK_CHANNEL", "other-channel")
-                                .addEnvVar("GO_SLACK_STATUSES", "fixed|broken")
-                                .addEnvVar("GO_SLACK_STAGES", "other-stage.*"))
+                                .addEnvVar(GO_SLACK_CHANNEL, "other-channel")
+                                .addEnvVar(GO_SLACK_STATUSES, "fixed|broken")
+                                .addEnvVar(GO_SLACK_STAGES, "other-stage.*"))
                 );
 
         Rules defaultRules = new Rules().setGoServerHost("http://localhost");
@@ -122,9 +126,9 @@ public class RuleResolverTest {
         when(server.fetchPipelineConfig("pipeline"))
                 .thenReturn(new PipelineConfig()
                         .setName("pipeline")
-                        .addEnvVar("GO_SLACK_CHANNEL", "test-channel")
-                        .addEnvVar("GO_SLACK_STATUSES", "failed|broken|fixed|building")
-                        .addEnvVar("GO_SLACK_STAGES", "other-stage")
+                        .addEnvVar(GO_SLACK_CHANNEL, "test-channel")
+                        .addEnvVar(GO_SLACK_STATUSES, "failed|broken|fixed|building")
+                        .addEnvVar(GO_SLACK_STAGES, "other-stage")
                         .addStage(new StageConfig()
                                 .setName("stage")));
 
@@ -167,9 +171,9 @@ public class RuleResolverTest {
         when(server.fetchPipelineConfig("pipeline"))
                 .thenReturn(new PipelineConfig()
                         .setName("pipeline")
-                        .addEnvVar("GO_SLACK_CHANNEL", "test-channel")
-                        .addEnvVar("GO_SLACK_STATUSES", "")
-                        .addEnvVar("GO_SLACK_STAGES", "stage.*")
+                        .addEnvVar(GO_SLACK_CHANNEL, "test-channel")
+                        .addEnvVar(GO_SLACK_STATUSES, "")
+                        .addEnvVar(GO_SLACK_STAGES, "stage.*")
                         .addStage(new StageConfig()
                                 .setName("stage")));
 
