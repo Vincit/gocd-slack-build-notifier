@@ -13,11 +13,12 @@ import static org.mockito.Mockito.when;
 public class RuleResolverTest {
 
     public static final String GO_SLACK_CHANNEL = "GO_SLACK_CHANNEL";
+    public static final String GO_SLACK_USER = "GO_SLACK_USER";
     public static final String GO_SLACK_STATUSES = "GO_SLACK_STATUSES";
     public static final String GO_SLACK_STAGES = "GO_SLACK_STAGES";
 
     @Test
-    public void shouldFetchRules() throws Exception {
+    public void shouldFetchRules_SendToChannel() throws Exception {
         Server server = mock(Server.class);
         RuleResolver resolver = new RuleResolver(server);
 
@@ -40,9 +41,56 @@ public class RuleResolverTest {
         assertThat(pipelineRule.getStatus().size(), is(4));
 
         PipelineRule foundRules = rules.find("pipeline", "stage", "failed").get();
-        assertThat(foundRules.getChannel(), is("test-channel"));
+        assertThat(foundRules.getChannel(), is("#test-channel"));
         assertThat(foundRules.getNameRegex(), is("pipeline"));
         assertThat(foundRules.getStageRegex(), is("stage.*"));
+    }
+
+    @Test
+    public void shouldFetchRules_SendToUser() throws Exception {
+        Server server = mock(Server.class);
+        RuleResolver resolver = new RuleResolver(server);
+
+        when(server.fetchPipelineConfig("pipeline"))
+                .thenReturn(new PipelineConfig()
+                        .setName("pipeline")
+                        .addEnvVar(GO_SLACK_USER, "test.user")
+                        .addEnvVar(GO_SLACK_STATUSES, "failed|broken|fixed|building")
+                        .addEnvVar(GO_SLACK_STAGES, "stage.*"));
+
+        Rules defaultRules = new Rules()
+                .setGoServerHost("http://localhost");
+        Rules rules = resolver.resolvePipelineRule(defaultRules, "pipeline", "stage");
+
+        assertThat(rules, notNullValue());
+        assertThat(rules.getPipelineRules().size(), is(1));
+
+        PipelineRule pipelineRule = rules.getPipelineRules().get(0);
+
+        assertThat(pipelineRule.getStatus().size(), is(4));
+
+        PipelineRule foundRules = rules.find("pipeline", "stage", "failed").get();
+        assertThat(foundRules.getChannel(), is("@test.user"));
+        assertThat(foundRules.getNameRegex(), is("pipeline"));
+        assertThat(foundRules.getStageRegex(), is("stage.*"));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void shouldThrowExceptionWhenTryToSendBothUserAndChannel() throws Exception {
+        Server server = mock(Server.class);
+        RuleResolver resolver = new RuleResolver(server);
+
+        when(server.fetchPipelineConfig("pipeline"))
+                .thenReturn(new PipelineConfig()
+                        .setName("pipeline")
+                        .addEnvVar(GO_SLACK_CHANNEL, "test-channel")
+                        .addEnvVar(GO_SLACK_USER, "test.user")
+                        .addEnvVar(GO_SLACK_STATUSES, "failed|broken|fixed|building")
+                        .addEnvVar(GO_SLACK_STAGES, "stage.*"));
+
+        Rules defaultRules = new Rules()
+                .setGoServerHost("http://localhost");
+        resolver.resolvePipelineRule(defaultRules, "pipeline", "stage");
     }
 
     @Test
