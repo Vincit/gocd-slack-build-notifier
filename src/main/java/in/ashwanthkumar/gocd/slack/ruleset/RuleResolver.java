@@ -29,11 +29,11 @@ public class RuleResolver {
     {
         PipelineConfig pipelineConfig = server.fetchPipelineConfig(currentPipeline);
 
-        Option<String> slackChannel = pipelineConfig.getStageEnvVar(currentStage, GO_SLACK_CHANNEL);
-        Option<String> slackUser = pipelineConfig.getStageEnvVar(currentStage, GO_SLACK_USER);
-        Option<String> buildStatuses = pipelineConfig.getStageEnvVar(currentStage, GO_SLACK_STATUSES);
-        Option<String> stageRegex = pipelineConfig.getStageEnvVar(currentStage, GO_SLACK_STAGES);
-        Option<String> stageBuildStatuses = pipelineConfig.getStageEnvVar(currentStage, getStageBuildStatusKey(currentStage));
+        Option<String> slackChannel = pipelineConfig.getEnvVar(GO_SLACK_CHANNEL);
+        Option<String> slackUser = pipelineConfig.getEnvVar(GO_SLACK_USER);
+        Option<String> buildStatuses = pipelineConfig.getEnvVar(GO_SLACK_STATUSES);
+        Option<String> stageRegex = pipelineConfig.getEnvVar(GO_SLACK_STAGES);
+        Option<String> stageBuildStatuses = pipelineConfig.getEnvVar(getStageBuildStatusKey(currentStage));
 
         String statuses = stageBuildStatuses.getOrElse(buildStatuses.getOrElse(null));
         String targetChannel = resolveTargetChannel(slackChannel, slackUser);
