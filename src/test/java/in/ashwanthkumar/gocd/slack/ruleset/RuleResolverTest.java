@@ -4,6 +4,9 @@ import in.ashwanthkumar.gocd.slack.jsonapi.Server;
 import in.ashwanthkumar.gocd.slack.jsonapi.config.pipeline.PipelineConfig;
 import org.junit.Test;
 
+import java.util.Arrays;
+import java.util.HashSet;
+
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNull.notNullValue;
 import static org.junit.Assert.assertThat;
@@ -178,6 +181,43 @@ public class RuleResolverTest {
 
         assertThat(rules.find("pipeline", "defaultStage", "passed").isDefined(), is(true));
         assertThat(rules.find("pipeline", "defaultStage", "failed").isDefined(), is(false));
+    }
+
+    @Test
+    public void shouldOverrideFileBasedRules() throws Exception {
+        Server server = mock(Server.class);
+        RuleResolver resolver = new RuleResolver(server);
+
+        when(server.fetchPipelineConfig("pipeline"))
+                .thenReturn(new PipelineConfig()
+                        .setName("pipeline")
+                        .addEnvVar(GO_SLACK_CHANNEL, "test-channel")
+                        .addEnvVar(GO_SLACK_STATUSES, "building|passed")
+                        .addEnvVar(GO_SLACK_STAGES, "defaultStage"));
+        when(server.fetchPipelineConfig("pipeline-2"))
+                .thenReturn(new PipelineConfig()
+                        .setName("pipeline-2"));
+
+        Rules defaultRules = new Rules()
+                .setGoServerHost("http://localhost")
+                .setPipelineRules(Arrays.asList(
+                        new PipelineRule()
+                        .setChannel("file-channel")
+                        .setNameRegex(".*")
+                        .setStageRegex(".*")
+                        .setStatus(new HashSet<PipelineStatus>(Arrays.asList(
+                                PipelineStatus.FAILED
+                        )))
+                ));
+        assertThat(resolver.resolvePipelineRule(defaultRules, "pipeline", "defaultStage").
+                find("pipeline", "defaultStage", "passed")
+                .isDefined(), is(true));
+        assertThat(resolver.resolvePipelineRule(defaultRules, "pipeline", "defaultStage")
+                .find("pipeline", "defaultStage", "failed")
+                .isDefined(), is(false));
+        assertThat(resolver.resolvePipelineRule(defaultRules, "pipeline-2", "defaultStage")
+                .find("pipeline", "defaultStage", "failed")
+                .isDefined(), is(true));
     }
 
 }

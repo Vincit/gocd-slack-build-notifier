@@ -39,7 +39,8 @@ public class GoNotificationPlugin implements GoPlugin {
 
     public static final String GO_NOTIFY_CONFIGURATION = "go_notify.conf";
 
-    private Rules rules;
+    private Rules fileRules;
+    private GoApplicationAccessor goApplicationAccessor;
 
     public GoNotificationPlugin() {
         String userHome = System.getProperty("user.home");
@@ -47,7 +48,7 @@ public class GoNotificationPlugin implements GoPlugin {
         if (!pluginConfig.exists()) {
             throw new RuntimeException(String.format("%s file is not found in %s", GO_NOTIFY_CONFIGURATION, userHome));
         }
-        rules = RulesReader.read(pluginConfig);
+        fileRules = RulesReader.read(pluginConfig);
     }
 
     public void initializeGoApplicationAccessor(GoApplicationAccessor goApplicationAccessor) {
@@ -119,12 +120,13 @@ public class GoNotificationPlugin implements GoPlugin {
         Map<String, Object> response = new HashMap<String, Object>();
         List<String> messages = new ArrayList<String>();
         try {
-            RuleResolver resolver = new RuleResolver(new Server(rules));
-            Rules pipelineRules = resolver.resolvePipelineRule(rules, message.getPipelineName(), message.getStageName());
+            //Rules configuration = getPluginConfiguration(); // FIXME: Is this really needed?
+            RuleResolver resolver = new RuleResolver(new Server(fileRules));
+            Rules filePipelineRules = resolver.resolvePipelineRule(fileRules, message.getPipelineName(), message.getStageName());
 
             response.put("status", "success");
             LOGGER.info(message.fullyQualifiedJobName() + " has " + message.getStageState() + "/" + message.getStageResult());
-            pipelineRules.resolvePipelineListener().notify(message);
+            filePipelineRules.resolvePipelineListener().notify(message);
         } catch (Exception e) {
             LOGGER.info(message.fullyQualifiedJobName() + " failed with error", e);
             responseCode = INTERNAL_ERROR_RESPONSE_CODE;
