@@ -13,6 +13,7 @@ import java.util.Collections;
 public class RuleResolver {
 
     public static final String GO_SLACK_CHANNEL = "GO_SLACK_CHANNEL";
+    public static final String GO_SLACK_USER = "GO_SLACK_USER";
     public static final String GO_SLACK_STATUSES = "GO_SLACK_STATUSES";
     public static final String GO_SLACK_STAGES = "GO_SLACK_STAGES";
     private static Logger LOGGER = Logger.getLoggerFor(RuleResolver.class);
@@ -29,17 +30,19 @@ public class RuleResolver {
         PipelineConfig pipelineConfig = server.fetchPipelineConfig(currentPipeline);
 
         Option<String> slackChannel = pipelineConfig.getStageEnvVar(currentStage, GO_SLACK_CHANNEL);
+        Option<String> slackUser = pipelineConfig.getStageEnvVar(currentStage, GO_SLACK_USER);
         Option<String> buildStatuses = pipelineConfig.getStageEnvVar(currentStage, GO_SLACK_STATUSES);
         Option<String> stageRegex = pipelineConfig.getStageEnvVar(currentStage, GO_SLACK_STAGES);
         Option<String> stageBuildStatuses = pipelineConfig.getStageEnvVar(currentStage, getStageBuildStatusKey(currentStage));
 
         String statuses = stageBuildStatuses.getOrElse(buildStatuses.getOrElse(null));
+        String targetChannel = resolveTargetChannel(slackChannel, slackUser);
 
         PipelineRule pipelineRule = new PipelineRule()
                 .setNameRegex(currentPipeline)
                 .setStageRegex(stageRegex.getOrElse(currentStage))
                 .setStatus(StatusUtils.statusStringToSet(statuses))
-                .setChannel(slackChannel.getOrElse(null));
+                .setChannel(targetChannel);
 
         LOGGER.info(String.format("Resolved rules for pipeline %s: %s", currentPipeline, pipelineRule.toString()));
 
@@ -53,6 +56,20 @@ public class RuleResolver {
                 .setEnabled(defaultRules.isEnabled())
                 .setSlackChannel(slackChannel.getOrElse(null))
                 .setPipelineRules(Collections.singletonList(pipelineRule));
+    }
+
+    private String resolveTargetChannel(Option<String> slackChannel, Option<String> slackUser) {
+        if (slackChannel.isDefined() && slackUser.isDefined()) {
+            throw new IllegalArgumentException(
+                    String.format("Only %s or %s may be defined, not both", GO_SLACK_CHANNEL, GO_SLACK_USER)
+            );
+        } else if (slackChannel.isDefined()) {
+            return "#" + slackChannel.get();
+        } else if (slackUser.isDefined()) {
+            return "@" + slackUser.get();
+        } else {
+            return null;
+        }
     }
 
     private String getStageBuildStatusKey(String stageName) {
