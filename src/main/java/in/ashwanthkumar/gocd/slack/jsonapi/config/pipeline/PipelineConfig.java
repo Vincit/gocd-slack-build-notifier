@@ -42,7 +42,7 @@ public class PipelineConfig {
         return name;
     }
 
-    public Option<String> getStageEnvVar(String stageName, String key) {
+    public Option<String> getEnvVar(String key) {
         Option<String> value = Options.empty();
 
         Map<String, String> envVars = Option.option(getEnvironmentVariablesAsMap())

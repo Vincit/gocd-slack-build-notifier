@@ -15,7 +15,7 @@ public class PipelineConfigTest {
     public void shouldReturnEnvVarFromPipeline() {
         PipelineConfig pipelineConfig = getPipelineConfig();
 
-        assertThat(pipelineConfig.getStageEnvVar("stage", "var5").get(), is("value_p5"));
+        assertThat(pipelineConfig.getEnvVar("var5").get(), is("value_p5"));
     }
 
 
@@ -24,7 +24,7 @@ public class PipelineConfigTest {
         PipelineConfig pipelineConfig = new PipelineConfig()
                 .setName("pipeline");
 
-        assertThat(pipelineConfig.getStageEnvVar("stage", "var1").isEmpty(), is(true));
+        assertThat(pipelineConfig.getEnvVar("var1").isEmpty(), is(true));
 
     }
 
@@ -41,26 +41,9 @@ public class PipelineConfigTest {
         pipelineEnvVars.add(new EnvVar("var5", "value_p5"));
         pipelineEnvVars.add(new EnvVar("var3", "value_p3"));
 
-        List<EnvVar> stageEnvVars = new ArrayList<EnvVar>();
-        stageEnvVars.add(new EnvVar("var1", "value_s1"));
-        stageEnvVars.add(new EnvVar("var2", "value_s2"));
-        stageEnvVars.add(new EnvVar("var3", "value_s3_other"));
-        stageEnvVars.add(new EnvVar("var4", "value_s4"));
-
         return new PipelineConfig()
                 .setName("pipeline")
                 .setEnvironmentVariables(pipelineEnvVars);
-    }
-
-    private PipelineConfig getPipelineConfigWithOnlyStageConfigs() {
-        List<EnvVar> stageEnvVars = new ArrayList<EnvVar>();
-        stageEnvVars.add(new EnvVar("var1", "value_s1"));
-        stageEnvVars.add(new EnvVar("var2", "value_s2"));
-        stageEnvVars.add(new EnvVar("var3", "value_s3_other"));
-        stageEnvVars.add(new EnvVar("var4", "value_s4"));
-
-        return new PipelineConfig()
-                .setName("pipeline");
     }
 
 
