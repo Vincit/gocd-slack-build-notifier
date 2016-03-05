@@ -8,7 +8,8 @@ import in.ashwanthkumar.utils.lang.option.Option;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.util.Collections;
+import java.util.Arrays;
+import java.util.List;
 
 public class RuleResolver {
 
@@ -27,6 +28,7 @@ public class RuleResolver {
     public Rules resolvePipelineRule(Rules defaultRules, String currentPipeline, String currentStage)
             throws URISyntaxException, IOException
     {
+        List<PipelineRule> pipelineRules;
         PipelineConfig pipelineConfig = server.fetchPipelineConfig(currentPipeline);
 
         Option<String> slackChannel = pipelineConfig.getEnvVar(GO_SLACK_CHANNEL);
@@ -38,13 +40,22 @@ public class RuleResolver {
         String statuses = stageBuildStatuses.getOrElse(buildStatuses.getOrElse(null));
         String targetChannel = resolveTargetChannel(slackChannel, slackUser);
 
-        PipelineRule pipelineRule = new PipelineRule()
-                .setNameRegex(currentPipeline)
-                .setStageRegex(stageRegex.getOrElse(currentStage))
-                .setStatus(StatusUtils.statusStringToSet(statuses))
-                .setChannel(targetChannel);
+        boolean hasPipelineSpecificRules =
+                (buildStatuses.isDefined() || stageBuildStatuses.isDefined()) && stageRegex.isDefined();
 
-        LOGGER.info(String.format("Resolved rules for pipeline %s: %s", currentPipeline, pipelineRule.toString()));
+        if (hasPipelineSpecificRules) {
+            pipelineRules = Arrays.asList(
+                    new PipelineRule()
+                            .setNameRegex(currentPipeline)
+                            .setStageRegex(stageRegex.getOrElse(currentStage))
+                            .setStatus(StatusUtils.statusStringToSet(statuses))
+                            .setChannel(targetChannel)
+            );
+        } else {
+            pipelineRules = defaultRules.getPipelineRules();
+        }
+
+        LOGGER.info(String.format("Resolved rules for pipeline %s: %s", currentPipeline, pipelineRules.toString()));
 
         return new Rules()
                 .setGoPassword(defaultRules.getGoPassword())
@@ -54,8 +65,8 @@ public class RuleResolver {
                 .setSlackDisplayName(defaultRules.getSlackDisplayName())
                 .setSlackUserIcon(defaultRules.getSlackUserIcon())
                 .setEnabled(defaultRules.isEnabled())
-                .setSlackChannel(slackChannel.getOrElse(null))
-                .setPipelineRules(Collections.singletonList(pipelineRule));
+                .setSlackChannel(targetChannel)
+                .setPipelineRules(pipelineRules);
     }
 
     private String resolveTargetChannel(Option<String> slackChannel, Option<String> slackUser) {

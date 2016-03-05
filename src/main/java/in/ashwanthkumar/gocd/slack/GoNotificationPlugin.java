@@ -46,7 +46,7 @@ public class GoNotificationPlugin implements GoPlugin {
 
     private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
     private GoEnvironment environment = new GoEnvironment();
-    private Rules rules;
+    private Rules fileRules;
 
     private final Timer timer = new Timer();
     private long configLastModified = 0l;
@@ -65,7 +65,7 @@ public class GoNotificationPlugin implements GoPlugin {
                     }
                     try {
                         lock.writeLock().lock();
-                        rules = RulesReader.read(pluginConfig);
+                        fileRules = RulesReader.read(pluginConfig);
                     } catch (Exception e) {
                         LOGGER.error(e.getMessage(), e);
                     } finally {
@@ -151,13 +151,13 @@ public class GoNotificationPlugin implements GoPlugin {
         Map<String, Object> response = new HashMap<String, Object>();
         List<String> messages = new ArrayList<String>();
         try {
-            RuleResolver resolver = new RuleResolver(new Server(rules));
-            Rules pipelineRules = resolver.resolvePipelineRule(rules, message.getPipelineName(), message.getStageName());
+            RuleResolver resolver = new RuleResolver(new Server(fileRules));
+            Rules filePipelineRules = resolver.resolvePipelineRule(fileRules, message.getPipelineName(), message.getStageName());
 
             response.put("status", "success");
             LOGGER.info(message.fullyQualifiedJobName() + " has " + message.getStageState() + "/" + message.getStageResult());
             lock.readLock().lock();
-            pipelineRules.resolvePipelineListener().notify(message);
+            filePipelineRules.resolvePipelineListener().notify(message);
         } catch (Exception e) {
             LOGGER.info(message.fullyQualifiedJobName() + " failed with error", e);
             responseCode = INTERNAL_ERROR_RESPONSE_CODE;
