@@ -1,4 +1,4 @@
-package in.ashwanthkumar.gocd.slack;
+package in.ashwanthkumar.gocd.slack.util;
 
 public enum Status {
     Building("Unknown"),

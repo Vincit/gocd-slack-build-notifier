@@ -2,6 +2,7 @@ package in.ashwanthkumar.gocd.slack;
 
 import in.ashwanthkumar.gocd.slack.jsonapi.*;
 import in.ashwanthkumar.gocd.slack.ruleset.Rules;
+import in.ashwanthkumar.gocd.slack.util.Status;
 import in.ashwanthkumar.gocd.slack.util.TestUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
