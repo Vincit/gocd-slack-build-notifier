@@ -6,8 +6,7 @@ import in.ashwanthkumar.utils.collections.Lists;
 import in.ashwanthkumar.utils.collections.Sets;
 import org.junit.Test;
 
-import static in.ashwanthkumar.gocd.slack.ruleset.PipelineStatus.FAILED;
-import static in.ashwanthkumar.gocd.slack.ruleset.PipelineStatus.PASSED;
+import static in.ashwanthkumar.gocd.slack.ruleset.PipelineStatus.*;
 import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertTrue;
 import static org.hamcrest.core.Is.is;
@@ -43,6 +42,21 @@ public class PipelineRuleTest {
     }
 
     @Test
+    public void shouldNotSetValuesFromDefaultsWhenPropertiesAreNotDefined() {
+        Config defaultConf = ConfigFactory.parseResources("configs/default-pipeline-rule.conf").getConfig("pipeline");
+        PipelineRule defaultRule = PipelineRule.fromConfig(defaultConf);
+
+        Config config = ConfigFactory.parseResources("configs/pipeline-rule-3.conf").getConfig("pipeline");
+        PipelineRule build = PipelineRule.fromConfig(config);
+
+        PipelineRule mergedRule = PipelineRule.merge(build, defaultRule);
+        assertThat(mergedRule.getNameRegex(), is("gocd-slack-build-notifier"));
+        assertThat(mergedRule.getStageRegex(), is("build"));
+        assertThat(mergedRule.getStatus(), is(Sets.of(FIXED, BROKEN)));
+        assertThat(mergedRule.getChannel(), is("#gocd"));
+    }
+
+    @Test
     public void shouldMatchThePipelineAndStageAgainstRegex() {
         PipelineRule pipelineRule = new PipelineRule("gocd-.*", ".*").setStatus(Sets.of(FAILED, PASSED));
         assertTrue(pipelineRule.matches("gocd-slack-build-notifier", "build", "failed"));
@@ -51,6 +65,7 @@ public class PipelineRuleTest {
 
         assertFalse(pipelineRule.matches("gocd", "publish", "failed"));
     }
+
 
 
 }
