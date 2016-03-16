@@ -109,7 +109,7 @@ public class RulesReaderTest {
 
     @Test(expected = RuntimeException.class)
     public void shouldThrowExceptionIfConfigInvalid() {
-        RulesReader.read("test-config-invalid.conf");
+        RulesReader.read("configs/test-config-invalid.conf");
     }
 
     @Test
