@@ -1,7 +1,7 @@
 package in.ashwanthkumar.gocd.slack.ruleset;
 
 
-import in.ashwanthkumar.gocd.slack.Status;
+import in.ashwanthkumar.gocd.slack.util.Status;
 import in.ashwanthkumar.utils.lang.option.Option;
 import org.junit.Test;
 
