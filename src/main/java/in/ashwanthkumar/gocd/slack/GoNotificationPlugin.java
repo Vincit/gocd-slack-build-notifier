@@ -16,6 +16,7 @@ import org.apache.commons.io.IOUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.*;
 import java.util.*;
 
 import static in.ashwanthkumar.utils.lang.StringUtils.isEmpty;
@@ -43,12 +44,42 @@ public class GoNotificationPlugin implements GoPlugin {
     private GoApplicationAccessor goApplicationAccessor;
 
     public GoNotificationPlugin() {
+        File pluginConfig = readConfig();
+        startPollingConfigs(pluginConfig);
+    }
+
+    private void startPollingConfigs(File pluginConfig) {
+        try {
+            Path p = pluginConfig.toPath();
+            WatchService s = p.getFileSystem().newWatchService();
+            p.register(s, StandardWatchEventKinds.ENTRY_MODIFY);
+
+            final WatchKey watckKey = s.take();
+
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    for (WatchEvent<?> watchEvent : watckKey.pollEvents()) {
+                        if (watchEvent.kind() == StandardWatchEventKinds.ENTRY_MODIFY) {
+                            LOGGER.debug("Config file changed");
+                            readConfig();
+                        }
+                    }
+                }
+            }).run();
+        } catch (Exception e) {
+            LOGGER.error("Error while starting to poll config file", e);
+        }
+    }
+
+    private synchronized File readConfig() {
         String userHome = System.getProperty("user.home");
         File pluginConfig = new File(userHome + File.separator + GO_NOTIFY_CONFIGURATION);
         if (!pluginConfig.exists()) {
             throw new RuntimeException(String.format("%s file is not found in %s", GO_NOTIFY_CONFIGURATION, userHome));
         }
         fileRules = RulesReader.read(pluginConfig);
+        return pluginConfig;
     }
 
     public void initializeGoApplicationAccessor(GoApplicationAccessor goApplicationAccessor) {
