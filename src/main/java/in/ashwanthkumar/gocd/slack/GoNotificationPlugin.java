@@ -127,8 +127,8 @@ public class GoNotificationPlugin implements GoPlugin {
         Map<String, Object> response = new HashMap<String, Object>();
         List<String> messages = new ArrayList<String>();
         try {
-            //Rules configuration = getPluginConfiguration(); // FIXME: Is this really needed?
-            RuleResolver resolver = new RuleResolver(new Server(fileRules));
+            RuleResolver resolver = getRuleResolver();
+
             Rules filePipelineRules = resolver.resolvePipelineRule(fileRules, message.getPipelineName(), message.getStageName());
 
             response.put("status", "success");
@@ -147,28 +147,6 @@ public class GoNotificationPlugin implements GoPlugin {
             response.put("messages", messages);
         }
         return renderJSON(responseCode, response);
-    }
-
-    private Rules getPluginConfiguration() {
-        Map<String, Object> responseBodyMap = getRulesFromGo();
-        return new Rules()
-                .setEnabled(false)
-                .setGoLogin((String)responseBodyMap.get("adminusername"))
-                .setGoPassword((String)responseBodyMap.get("adminpassword"))
-                .setWebHookUrl((String)responseBodyMap.get("webhookurl"))
-                .setSlackDisplayName((String)responseBodyMap.get("displayname"))
-                .setSlackUserIcon((String)responseBodyMap.get("iconurl"))
-                .setGoServerHost((String)responseBodyMap.get("serverhost"));
-    }
-
-    private Map<String, Object> getRulesFromGo() {
-        Map<String, Object> requestMap = new HashMap<String, Object>();
-        requestMap.put("plugin-id", "slack.notifier");
-        GoApiResponse response = goApplicationAccessor.submit(createGoApiRequest(GET_PLUGIN_SETTINGS, JSONUtils.toJSON(requestMap)));
-
-        return response.responseBody() == null ?
-                new HashMap<String, Object>() :
-                (Map<String, Object>) JSONUtils.fromJSON(response.responseBody());
     }
 
     private GoNotificationMessage parseNotificationMessage(GoPluginApiRequest goPluginApiRequest) {
@@ -193,5 +171,39 @@ public class GoNotificationPlugin implements GoPlugin {
                 return json;
             }
         };
+    }
+
+    private RuleResolver getRuleResolver() {
+        Rules configuration = getPluginConfiguration();
+        RuleResolver resolver;
+        if (configuration.isUseConfigFile()) {
+            resolver = new RuleResolver(new Server(fileRules));
+        } else {
+            resolver = new RuleResolver(new Server(configuration));
+        }
+        return resolver;
+    }
+
+    private Rules getPluginConfiguration() {
+        Map<String, Object> responseBodyMap = getRulesFromGo();
+        return new Rules()
+                .setEnabled(false) // FIXME: Really false?
+                .setUseConfigFile(Boolean.valueOf((String)responseBodyMap.get("useconfigfile")))
+                .setGoLogin((String)responseBodyMap.get("adminusername"))
+                .setGoPassword((String)responseBodyMap.get("adminpassword"))
+                .setWebHookUrl((String)responseBodyMap.get("webhookurl"))
+                .setSlackDisplayName((String)responseBodyMap.get("displayname"))
+                .setSlackUserIcon((String)responseBodyMap.get("iconurl"))
+                .setGoServerHost((String)responseBodyMap.get("serverhost"));
+    }
+
+    private Map<String, Object> getRulesFromGo() {
+        Map<String, Object> requestMap = new HashMap<String, Object>();
+        requestMap.put("plugin-id", "slack.notifier");
+        GoApiResponse response = goApplicationAccessor.submit(createGoApiRequest(GET_PLUGIN_SETTINGS, JSONUtils.toJSON(requestMap)));
+
+        return response.responseBody() == null ?
+                new HashMap<String, Object>() :
+                (Map<String, Object>) JSONUtils.fromJSON(response.responseBody());
     }
 }

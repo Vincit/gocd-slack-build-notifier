@@ -20,6 +20,7 @@ public class Rules {
     private static Logger LOGGER = Logger.getLoggerFor(Rules.class);
 
     private boolean enabled;
+    private boolean useConfigFile;
     private String webHookUrl;
     private String slackChannel;
     private String slackDisplayName;
@@ -38,6 +39,15 @@ public class Rules {
 
     public Rules setEnabled(boolean enabled) {
         this.enabled = enabled;
+        return this;
+    }
+
+    public boolean isUseConfigFile() {
+        return useConfigFile;
+    }
+
+    public Rules setUseConfigFile(boolean useConfigFile) {
+        this.useConfigFile = useConfigFile;
         return this;
     }
 
