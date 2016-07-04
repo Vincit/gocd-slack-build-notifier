@@ -93,7 +93,7 @@ public class Server {
 
     public PipelineConfig fetchPipelineConfig(String pipelineName) throws IOException {
         URL url = new URL(String.format("%s/go/api/admin/pipelines/%s",
-                mRules.getGoServerHost(),
+                mRules.getGoAPIServerHost(),
                 pipelineName)
         );
 
