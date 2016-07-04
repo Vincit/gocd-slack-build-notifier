@@ -76,6 +76,25 @@ gocd.slack {
 <img src="https://raw.githubusercontent.com/ashwanthkumar/gocd-slack-build-notifier/master/images/gocd-slack-notifier-demo-with-changes.png" width="400"/>
 <img src="https://raw.githubusercontent.com/ashwanthkumar/gocd-slack-build-notifier/master/images/gocd-slack-notifier-demo.png" width="400"/>
 
+## Environment Variable Based Configuration
+
+Pipeline and stage specific configurations can also be done via pipeline level environment variables. This makes
+it possible to let pipeline admins to configure the notifications as they wish without modifying the configuration
+file and restarting the server. The environment variables based configurations override the configuration file options
+if any of the environment variables has been set for the pipeline.
+
+- `GO_SLACK_STAGES` - Stage regex, works same as the configuration file option.
+- `GO_SLACK_CHANNEL` - (Optional) Channel to send the message. (If this is set, `GO_SLACK_USER` must not be set)
+- `GO_SLACK_USER` - (Optional) User to send the message. (If this is set, `GO_SLACK_CHANNEL` must not be set)
+- `GO_SLACK_STATUSES` - (Optional) Statuses to, works same as the configuration file option. This will
+                        override any configuration file status configuration.
+- `GO_SLACK_STATUSES_<stage name>` - (Optional) Stage specific status option. For instance if the stage name is `buildStage`,
+                                     then configuration name is `GO_SLACK_STAGES_buildStage`.
+                                     If the stage name contains dashes, they are removed. For instance
+                                     if the stage name is `build-stage` then the configuration name is
+                                     `GO_SLACK_STAGES_buildstage`. This will override any configuration file and
+                                     pipeline environment variable level configuration.
+
 ## License
 
 http://www.apache.org/licenses/LICENSE-2.0
